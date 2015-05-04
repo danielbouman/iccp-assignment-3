@@ -11,7 +11,7 @@ class Particle:
     xAxis = frange(0,L,a)
     
     # Define the momentum operator matrix
-    self.H = np.multiply(sp.eye(L/a,k=0),-2)
+    self.H = np.multiply(sp.eye(L/a),-2)
     self.H += sp.eye(L/a,k=-1)
     self.H += sp.eye(L/a,k=1)
     self.H = np.divide(self.H,-a**2).todense()
