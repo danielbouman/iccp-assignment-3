@@ -2,7 +2,9 @@ import numpy as np
 import scipy.sparse as sp
 import scipy.sparse.linalg as linalg
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 import time
+from anim import animate_wavefunction
 
 
 class Particle:
@@ -25,7 +27,7 @@ class Particle:
   def potential(self,pos,amp):
     # Add potential to hamiltonian matrix
     H_index = pos/self.a
-    self.H[H_index,H_index] = amp
+    self.H[H_index,H_index] = self.H[H_index,H_index] + amp
 
   def normalize_wavefunction(self):
     inner_product = self.a*sum(np.multiply(self.psi,np.conj(self.psi)))
@@ -44,13 +46,15 @@ class Particle:
 
   def plot1D(self):
     time_evolved_probability = np.real(np.multiply(self.time_evolved_psi,np.conj(self.time_evolved_psi)))
-    # print((time_evolved_probability[:,0]))
-    # plt.plot(self.xAxis,time_evolved_probability[:,0])
-    # plt.ion
-    # plt.axis([0,self.L,0,0.5])
-    # plt.show()
-    for i in range(0,self.duration):
-        probability = time_evolved_probability[:,i]
-        plt.plot(self.xAxis,probability)
-        plt.show()
-        time.sleep(0.2)
+    animate_wavefunction(time_evolved_probability,self.L,self.a,self.duration)
+
+    # for i in range(0,self.duration):
+    #     probability = time_evolved_probability[:,i]
+
+    #     fig = plt.figure()
+    #     ax1 = 
+
+    #     plt.plot(self.xAxis,probability)
+    #     plt.show()
+    #     time.sleep(0.2)
+

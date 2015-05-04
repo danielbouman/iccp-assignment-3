@@ -1,6 +1,5 @@
 # ICCP assignment 3
 from QD.dynamics import Particle
-import plot1D
 
 # Parameters
 a = 0.5       # Spatial resolution
@@ -10,12 +9,12 @@ k = 1         # Wave vector
 mu = 10
 hbar = 1      # Reduced Planck constant
 # Potential
-pos = 0      # Potential position
-amp = 0      # Potential height
+pos = 50      # Potential position
+amp = 100      # Potential height
 
 # Time evolution
-tau = 1
-duration = 50
+tau = 0.1
+duration = 500
 
 
 particle1 = Particle(a,L,sigma,k,mu)     # Initialize particle
