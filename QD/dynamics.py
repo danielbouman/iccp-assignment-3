@@ -22,7 +22,11 @@ class Particle:
     # Add potential to hamiltonian matrix
     H_index = pos/self.a
     self.H[H_index,H_index] = amp
-  
+
+  def normalize_wavefunction(self):
+    inner_product = a*sum(np.multiply(self.psi,np.conj(self.psi)))
+    self_psi *= (1/np.sqrt(np.abs(inner_product)))
+    
   def timeEvolution(self,tau,hbar,duration):
     # Define A and B matrices
     A = sp.identity(self.L/self.a) - tau/(1j*hbar)*self.H
@@ -33,5 +37,5 @@ class Particle:
 
     # Time is run here
     for i in range(0,duration):
-      psi_new = linalg.bicgstab(A,np.transpose(np.dot(B,np.transpose(self.psi))))
+      time_ = linalg.bicgstab(A,np.transpose(np.dot(B,np.transpose(self.psi))))
     
