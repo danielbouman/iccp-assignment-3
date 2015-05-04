@@ -29,3 +29,4 @@ class Particle:
     # Time is run here
     for i in range(0,duration+1):
       psi_new = linalg.bicgstab(A,B*psi)
+    

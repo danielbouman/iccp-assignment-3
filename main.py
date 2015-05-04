@@ -14,4 +14,4 @@ particle1 = Particle(a,L,sigma,k)     # Initialize particle
 particle1.potential(pos,amp)          # Initialize potential
 particle1.timeEvolution()             # Start time evolution of particle
 
-particle1
+particle1.plot()
