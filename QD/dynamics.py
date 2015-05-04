@@ -27,11 +27,11 @@ class Particle:
     # Define A and B matrices
     A = sp.identity(self.L/self.a) - tau/(1j*hbar)*self.H
     B = sp.identity(self.L/self.a) + tau/(1j*hbar)*self.H
-    
-    time_evolved_psi = np.zeros((self.L/self.a,duration),dtype=float)
+    time_evolved_psi = np.zeros((self.L/self.a,duration),dtype=complex)
 
+    print(B.dot(self.psi).transpose().shape)
+    print(A.shape)
 
     # Time is run here
     for i in range(0,duration):
-      psi_new = linalg.bicgstab(A,np.transpose(np.dot(B,np.transpose(self.psi))))
-    
+        time_evolved_psi[:,i],_ = linalg.bicgstab(A,B.dot(self.psi).transpose())

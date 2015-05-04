@@ -10,7 +10,6 @@ hbar = 1      # Reduced Planck constant
 # Potential
 pos = 50      # Potential position
 amp = 10      # Potential height
-<<<<<<< HEAD
 
 # Time evolution
 tau = 1
