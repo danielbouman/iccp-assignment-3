@@ -7,7 +7,7 @@ class Particle:
   def __init__(self,a,L,sigma,k):
     self.L = L # box length
     self.a = a # spatial resolution
-    xAxis = np.linspace(0,L,L/a+1)
+    xAxis = np.linspace(0,L,L/a)
     
     # Define the momentum operator matrix
     self.H = np.multiply(sp.eye(L/a,k=0),-2)
@@ -18,20 +18,22 @@ class Particle:
     # Wave function
     self.psi = 1/(sigma*np.sqrt(2*np.pi))*np.exp(-np.power(xAxis,2))
     
-  def potential(pos,amp):
+  def potential(self,pos,amp):
     # Add potential to hamiltonian matrix
     H_index = pos/self.a
     self.H[H_index,H_index] = amp
   
-  def timeEvolution(tau,hbar,duration):
+  def timeEvolution(self,tau,hbar,duration):
     # Define A and B matrices
-    A = sp.identity(self.L/self.a) - tau/(i*hbar)*self.H
-    B = sp.identity(self.L/self.a) + tau/(i*hbar)*self.H
+    A = sp.identity(self.L/self.a) - tau/(1j*hbar)*self.H
+    B = sp.identity(self.L/self.a) + tau/(1j*hbar)*self.H
     
     time_evolved_psi = np.zeros(L/a,duration,dtype=float)
 
     # Time is run here
-    for ii in range(0,duration):
-      psi_new = linalg.bicgstab(A,B*psi)
-      time_evolved_psi[:,ii] = psi_new
+    for i in range(0,duration):
+      print(A.shape)
+      print(B.shape)
+      print(len(self.psi))
+      psi_new = linalg.bicgstab(A,B*self.psi)
     
