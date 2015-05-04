@@ -1,13 +1,16 @@
 import numpy as np
 import scipy.sparse as sp
 import scipy.sparse.linalg as linalg
+import matplotlib.pyplot as plt
+import time
+
 
 class Particle:
   
-  def __init__(self,a,L,sigma,k):
+  def __init__(self,a,L,sigma,k,mu):
     self.L = L # box length
     self.a = a # spatial resolution
-    xAxis = np.linspace(0,L,L/a)
+    self.xAxis = np.linspace(0,L,L/a)
     
     # Define the momentum operator matrix
     self.H = np.multiply(sp.eye(L/a,k=0),-2)
@@ -16,7 +19,8 @@ class Particle:
     self.H = np.divide(self.H,-a**2).todense()
     
     # Wave function
-    self.psi = 1/(sigma*np.sqrt(2*np.pi))*np.exp(-np.power(xAxis,2))
+    self.psi = np.multiply(np.exp((-1/sigma)*np.power(self.xAxis-mu,2)),np.exp(-1j*k*self.xAxis))
+
     
   def potential(self,pos,amp):
     # Add potential to hamiltonian matrix
@@ -24,18 +28,29 @@ class Particle:
     self.H[H_index,H_index] = amp
 
   def normalize_wavefunction(self):
-    inner_product = a*sum(np.multiply(self.psi,np.conj(self.psi)))
-    self_psi *= (1/np.sqrt(np.abs(inner_product)))
+    inner_product = self.a*sum(np.multiply(self.psi,np.conj(self.psi)))
+    self.psi = (1/np.sqrt(np.abs(inner_product)))*self.psi
     
   def timeEvolution(self,tau,hbar,duration):
+    self.duration = duration
     # Define A and B matrices
     A = sp.identity(self.L/self.a) - tau/(1j*hbar)*self.H
     B = sp.identity(self.L/self.a) + tau/(1j*hbar)*self.H
-    time_evolved_psi = np.zeros((self.L/self.a,duration),dtype=complex)
-
-    print(B.dot(self.psi).transpose().shape)
-    print(A.shape)
-
+    self.time_evolved_psi = np.zeros((self.L/self.a,duration),dtype=complex)
     # Time is run here
     for i in range(0,duration):
-        time_evolved_psi[:,i],_ = linalg.bicgstab(A,B.dot(self.psi).transpose())
+        self.time_evolved_psi[:,i],_ = linalg.bicgstab(A,B.dot(self.psi).transpose())
+        self.psi = self.time_evolved_psi[:,i]
+
+  def plot1D(self):
+    time_evolved_probability = np.real(np.multiply(self.time_evolved_psi,np.conj(self.time_evolved_psi)))
+    # print((time_evolved_probability[:,0]))
+    # plt.plot(self.xAxis,time_evolved_probability[:,0])
+    # plt.ion
+    # plt.axis([0,self.L,0,0.5])
+    # plt.show()
+    for i in range(0,self.duration):
+        probability = time_evolved_probability[:,i]
+        plt.plot(self.xAxis,probability)
+        plt.show()
+        time.sleep(0.2)
