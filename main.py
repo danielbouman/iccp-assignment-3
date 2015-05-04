@@ -1,8 +1,8 @@
 # ICCP assignment 3
-from QD.dynmaics import Particle
+from QD.dynamics import Particle
 
 # Parameters
-a = 0.5       # Spacial resolution
+a = 0.5       # Spatial resolution
 L = 100       # Domain size
 sigma = 1     # Wavefunction shape
 k = 5         # Wave vector

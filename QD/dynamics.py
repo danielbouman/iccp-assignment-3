@@ -6,20 +6,22 @@ class Particle:
   
   def __init__(self,a,L,delta,k):
     self.L = L # box length
-    self.a = a # spacial resolution
+    self.a = a # spatial resolution
     
     # Define the momentum operator matrix
-    self.H = np.divide(sp.eye(L/a),-a**2)
+    self.H = np.multiply(sp.eye(L/a,k=0),-2)
     self.H += sp.eye(L/a,k=-1)
     self.H += sp.eye(L/a,k=1)
+    self.H = np.divide(self.H,-a**2)
     
     # Wave function
-    self.psi = 1/(sigma*np.sqrt(2*np.pi))*np.exp(i*self.k*x)
+    self.psi = 1/(sigma*np.sqrt(2*np.pi))*np.exp(-self.k*x**2)
     
   def potential(pos,amp):
     # Add potential to hamiltonian matrix
     H_index = pos/self.a
-    self.H(H_index,H_index) = amp
+    # self.H(H_index,H_index) = amp
+    amp = self.H(H_index,H_index)
   
   def timeEvolution(tau,hbar,duration):
     # Define A and B matrices
