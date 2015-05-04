@@ -1,23 +1,22 @@
 import numpy as np
 import scipy.sparse as sp
 import scipy.sparse.linalg as linalg
-from custom_functions import frange
 
 class Particle:
   
   def __init__(self,a,L,sigma,k):
     self.L = L # box length
     self.a = a # spatial resolution
-    xAxis = frange(0,L,a)
+    xAxis = np.linspace(0,L,L/a+1)
     
     # Define the momentum operator matrix
     self.H = np.multiply(sp.eye(L/a,k=0),-2)
-    self.H += sp.eye(L/a,k=-1)
-    self.H += sp.eye(L/a,k=1)
+    self.H = self.H + sp.eye(L/a,k=-1)
+    self.H = self.H + sp.eye(L/a,k=1)
     self.H = np.divide(self.H,-a**2).todense()
     
     # Wave function
-    self.psi = 1/(sigma*np.sqrt(2*np.pi))*np.exp(-k*xAxis**2)
+    self.psi = 1/(sigma*np.sqrt(2*np.pi))*np.exp(-np.power(xAxis,2))
     
   def potential(pos,amp):
     # Add potential to hamiltonian matrix
