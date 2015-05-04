@@ -1,27 +1,28 @@
 import numpy as np
 import scipy.sparse as sp
 import scipy.sparse.linalg as linalg
+from custom_functions import frange
 
 class Particle:
   
-  def __init__(self,a,L,delta,k):
+  def __init__(self,a,L,sigma,k):
     self.L = L # box length
     self.a = a # spatial resolution
+    xAxis = frange(0,L,a)
     
     # Define the momentum operator matrix
     self.H = np.multiply(sp.eye(L/a,k=0),-2)
     self.H += sp.eye(L/a,k=-1)
     self.H += sp.eye(L/a,k=1)
-    self.H = np.divide(self.H,-a**2)
+    self.H = np.divide(self.H,-a**2).todense()
     
     # Wave function
-    self.psi = 1/(sigma*np.sqrt(2*np.pi))*np.exp(-self.k*x**2)
+    self.psi = 1/(sigma*np.sqrt(2*np.pi))*np.exp(-k*xAxis**2)
     
   def potential(pos,amp):
     # Add potential to hamiltonian matrix
     H_index = pos/self.a
-    # self.H(H_index,H_index) = amp
-    amp = self.H(H_index,H_index)
+    self.H[H_index,H_index] = amp
   
   def timeEvolution(tau,hbar,duration):
     # Define A and B matrices
