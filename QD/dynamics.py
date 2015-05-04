@@ -28,7 +28,10 @@ class Particle:
     A = sp.identity(self.L/self.a) - tau/(i*hbar)*self.H
     B = sp.identity(self.L/self.a) + tau/(i*hbar)*self.H
     
+    time_evolved_psi = np.zeros(L/a,duration,dtype=float)
+
     # Time is run here
-    for i in range(0,duration+1):
+    for ii in range(0,duration):
       psi_new = linalg.bicgstab(A,B*psi)
+      time_evolved_psi[:,ii] = psi_new
     

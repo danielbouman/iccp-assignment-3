@@ -9,6 +9,7 @@ k = 5         # Wave vector
 # Dirac potential
 pos = 50      # Potential position
 amp = 10      # Potential height
+duration = 10 # Amount of timesteps
 
 particle1 = Particle(a,L,sigma,k)     # Initialize particle
 particle1.potential(pos,amp)          # Initialize potential
