@@ -10,8 +10,8 @@ def plot1D(time_evolved_psi,L,xAxis):
     plt.axis([0,L,0,6])
     plt.show()
 
-    for ii in range(0,length(probability,1)):
-        probability = time_evolved_probability[:,ii]
+    for i in range(0,length(probability,1)):
+        probability = time_evolved_probability[:,i]
         plt.plot(xAxis,probability)
         plt.draw()
         time.sleep(0.5)

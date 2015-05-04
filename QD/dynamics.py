@@ -28,7 +28,7 @@ class Particle:
     A = sp.identity(self.L/self.a) - tau/(1j*hbar)*self.H
     B = sp.identity(self.L/self.a) + tau/(1j*hbar)*self.H
     
-    time_evolved_psi = np.zeros(L/a,duration,dtype=float)
+    time_evolved_psi = np.zeros((self.L/self.a,duration),dtype=float)
 
     # Time is run here
     for i in range(0,duration):
