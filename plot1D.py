@@ -15,4 +15,4 @@ def plot1D(time_evolved_psi,L,xAxis):
         plt.plot(xAxis,probability)
         plt.draw()
         time.sleep(0.5)
-    return;
+    return
