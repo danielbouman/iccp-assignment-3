@@ -64,8 +64,8 @@ class Particle:
     ani = animation.FuncAnimation(fig, animate, np.arange(1, self.duration), init_func=init,
         interval=interval, blit=True,repeat=False)
     plt.axis([0,self.L,-0.05,0.5])
-    potential = np.zeros((self.L/self.a,1),dtype=float)
-    potential[100] = 0.3
-    plt.plot(x,potential)
+    # potential = np.zeros((self.L/self.a,1),dtype=float)
+    # potential[100] = 0.3
+    # plt.plot(x,potential)
     plt.show()
     return
