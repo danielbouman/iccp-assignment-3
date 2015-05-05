@@ -4,7 +4,7 @@ import scipy.sparse.linalg as linalg
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import time
-from anim import animate_wavefunction
+from anim2D import animate_wavefunction
 import pylab
 from mpl_toolkits.mplot3d import Axes3D
 
@@ -30,14 +30,9 @@ class Particle:
     self.H_y = np.divide(self.H_y,-a**2).todense()
 
     # Wave function
-    # self.psi_x = np.multiply(np.exp((-1/sigma_x)*np.power(self.xAxis-mu_x,2)),np.exp(-1j*k_x*self.xAxis))
-    self.psi_x = np.cos(0.1*self.xAxis)
-    self.psi_x[20] = 0
-    self.psi_x[12] = 5
-    # self.psi_y = np.multiply(np.exp((-1/sigma_y)*np.power(self.yAxis-mu_y,2)),np.exp(-1j*k_y*self.yAxis))
-    self.psi_y = np.cos(0.1*self.yAxis)
-    self.psi_y[20] = 0
-    self.psi_y[12] = 5
+    self.psi_x = np.multiply(np.exp((-1/sigma_x)*np.power(self.xAxis-mu_x,2)),np.exp(-1j*k_x*self.xAxis))
+    self.psi_y = np.multiply(np.exp((-1/sigma_y)*np.power(self.yAxis-mu_y,2)),np.exp(-1j*k_y*self.yAxis))
+    
 
   def potential(self,pos,amp):
     # Add potential to hamiltonian matrix
@@ -73,27 +68,26 @@ class Particle:
     time_evolved_probability = np.zeros((self.L_x/self.a,self.L_y/self.a,self.duration),dtype=float)
 
 
-
     for i in range(0,self.duration):
-        time_evolved_probability[:,:,i] = time_evolved_probability_x[:,i]*time_evolved_probability_y[:,i]
+        time_evolved_probability[:,:,i] = np.outer(time_evolved_probability_x[:,i],time_evolved_probability_y[:,i])
 
     # print(time_evolved_probability[:,:,0])
 
     # animate_wavefunction(time_evolved_probability,self.L,self.a,self.duration)
     # plt.plot(self.xAxis,sel)
 
-    x_mesh,y_mesh = np.meshgrid(self.xAxis,self.yAxis)
 
+
+    x_mesh,y_mesh = np.meshgrid(self.xAxis,self.yAxis)
+    
+    # fig = plt.figure()
+    # ax = plt.axes(xlim=(0, self.L_x), ylim=(0, self.L_y))  
+    # plt.xlabel(r'x')
+    # plt.ylabel(r'y')
+
+    # anim = animation.FuncAnimation(fig, animate, frames=Nt)
 
     for i in range(0,self.duration):
         grid = time_evolved_probability[:,:,i]
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-
-        # u = np.linspace(0, 2 * np.pi, 100)
-        # y = self.y
-
-        ax.plot_surface(x_mesh, y_mesh, grid,  rstride=4, cstride=4, color='b')
-
+        plt.imshow(grid, interpolation='none')
         plt.show()
-

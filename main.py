@@ -2,15 +2,15 @@
 from QD.dynamics import Particle
 
 # Parameters
-a = 1       # Spatial resolution
-L_x = 50       # Domain size
-L_y = 50 
-sigma_x = 15.5     # Wavefunction shape
-sigma_y = 9.5
-k_x = 5         # Wave vector
+a = 0.25       # Spatial resolution
+L_x = 40       # Domain size
+L_y = 40 
+sigma_x = 2.5     # Wavefunction shape
+sigma_y = 6.5
+k_x = 1/300         # Wave vector
 k_y = -1/7         # Wave vector
-mu_x = 15
-mu_y = 15
+mu_x = 10
+mu_y = 30
 hbar = 1      # Reduced Planck constant
 # Potential
 pos = 0      # Potential position
