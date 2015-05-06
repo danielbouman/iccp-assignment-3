@@ -17,7 +17,7 @@ duration = 100
 
 particle = CrankNicolson(a,L,sigma_x,sigma_y,k_x,k_y,mu_x,mu_y)     # Initialize particle
 particle.normalize_wavefunction()      # normalize wavefunction so that probability sums up to unity
-particle.potential("wall",25,100)          # Initialize potential
+particle.potential("double slit",25,100,1,5)          # Initialize potential
 particle.timeEvolution(tau,duration)             # Start time evolution of particle
 particle.plot2D()
 # particle1.plot()

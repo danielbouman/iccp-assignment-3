@@ -28,10 +28,30 @@ class CrankNicolson:
     self.psi = np.outer(psi_y,psi_x).flatten()
     
   def potential(self,function,*args):
-    if function == "wall":
-      V = sp.lil_matrix((self.gridLength,self.gridLength))
+    V = sp.lil_matrix((self.gridLength,self.gridLength))
+    if str.lower(function) == "wall":
+      """
+      Horizontal wall
+      arg 0 : y-position of wall
+      arg 1 : height of wall
+      """
       V[args[0]/self.a,:] = args[1]
-      self.H = self.H + sp.diags(V.reshape((1,self.gridLength**2)).toarray(),[0])
+    if str.lower(function) == "double slit":
+      """
+      Double slit wall
+      arg 0 : y-position of wall
+      arg 1 : height of wall
+      arg 2 : slit distances from the center
+      arg 3 : width of slits
+      """
+      V[args[0]/self.a,:] = args[1]
+      endIndexSlitLeft = int(self.gridLength/2 - args[2]/self.a)
+      startIndexSlitRight = int(self.gridLength/2 + args[2]/self.a)
+      V[args[0]/self.a,int(endIndexSlitLeft-args[3]/self.a):endIndexSlitLeft] = 0
+      V[args[0]/self.a,startIndexSlitRight:int(startIndexSlitRight+args[3]/self.a)] = 0
+    
+    self.H = self.H + sp.diags(V.reshape((1,self.gridLength**2)).toarray(),[0])
+      
 
   def normalize_wavefunction(self):
     self.psi = (1/np.linalg.norm(self.psi))*self.psi
