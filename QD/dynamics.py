@@ -27,17 +27,11 @@ class CrankNicolson:
     psi_y = np.multiply(np.exp((-1/sigma_y)*np.power(self.grid1D-mu_y,2)),np.exp(-1j*k_y*self.grid1D))
     self.psi = np.outer(psi_y,psi_x).flatten()
     
-  def potential(self,function):
+  def potential(self,function,*args):
     if function == "wall":
-      V = sp.csr_matrix((3,3),dtype="float")
-      # V[] =
-    
-    # Add potential to hamiltonian matrix
-    # xIndexStart = int(xStart/self.a)
-    # xIndexEnd = int(xEnd/self.a)
-    # yIndexStart = int(yStart/self.a)
-    # yIndexEnd = int(yEnd/self.a)
-    # self.H_x[xIndexStart:xIndexEnd,xIndexStart:xIndexEnd] = self.H_x[xIndexStart:xIndexEnd,xIndexStart:xIndexEnd] + amp
+      V = sp.lil_matrix((self.gridLength,self.gridLength))
+      V[args[0]/self.a,:] = args[1]
+      self.H = self.H + sp.diags(V.reshape((1,self.gridLength**2)).toarray(),[0])
 
   def normalize_wavefunction(self):
     self.psi = (1/np.linalg.norm(self.psi))*self.psi
@@ -79,7 +73,7 @@ class CrankNicolson:
 
     # anim = animation.FuncAnimation(fig, animate, frames=Nt)
 
-    # for i in range(0,self.duration):
-    grid = time_evolved_probability[:,:,50]
-    plt.imshow(grid, interpolation='none')
-    plt.show()
+    for i in range(0,self.duration):
+      grid = time_evolved_probability[:,:,i]
+      plt.imshow(grid, interpolation='none')
+      plt.show()
