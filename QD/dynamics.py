@@ -4,7 +4,7 @@ import scipy.sparse as sp
 import scipy.sparse.linalg as linalg
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from anim2D import animate_wavefunction
+# from anim2D import animate_wavefunction
 
 class CrankNicolson:
   
