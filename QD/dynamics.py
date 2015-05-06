@@ -2,16 +2,9 @@ import numpy as np
 from numpy import linalg as LA
 import scipy.sparse as sp
 import scipy.sparse.linalg as linalg
-import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-# import sys
 from anim2D import animate_wavefunction
-matplotlib.use("Agg")
-
-# import time
-# import pylab
-# from mpl_toolkits.mplot3d import Axes3D
 
 class CrankNicolson:
   
@@ -75,7 +68,7 @@ class CrankNicolson:
       self.time_evolved_psi[:,i],_ = linalg.bicgstab(A,B.dot(self.psi).transpose())
       self.psi = self.time_evolved_psi[:,i]
 
-  def plot2D(self,plotStyle="",saveAnimation=False):
+  def plot(self,plotStyle="",saveAnimation=False):
     time_evolved_probability = np.real(np.multiply(self.time_evolved_psi,np.conj(self.time_evolved_psi))).reshape(self.gridLength,self.gridLength,self.duration)
     x,y = np.meshgrid(self.grid1D,self.grid1D)
 
@@ -85,20 +78,20 @@ class CrankNicolson:
       writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
     
     if plotStyle == "animate":
-        for i in range(0,self.duration):
-          grid = time_evolved_probability[:,:,5*i]
-          plt.imshow(grid, interpolation='none')
-          plt.show()
+      fig = plt.figure()
+      ax = plt.axes(xlim=(0, self.L), ylim=(0, self.L))
+      # animation function
+      def animate(i):
+          z = time_evolved_probability[:,:,i]
+          cont = plt.contourf(x, y, z,9)
+          return cont
+      anim = animation.FuncAnimation(fig, animate, interval= 200,  repeat_delay=1000, frames=self.duration)
+      if saveAnimation == True:
+        anim.save('im.mp4', writer=writer)
+      else:
+        plt.show()
     else:
-        fig = plt.figure()
-        ax = plt.axes(xlim=(0, self.L), ylim=(0, self.L))
-        # animation function
-        def animate(i):
-            z = time_evolved_probability[:,:,i]
-            cont = plt.contourf(x, y, z,9)
-            return cont
-        anim = animation.FuncAnimation(fig, animate, interval= 200,  repeat_delay=1000, frames=self.duration)
-        if saveAnimation == True:
-          anim.save('im.mp4', writer=writer)
-        else:
-          plt.show()
+      for i in range(0,self.duration):
+        grid = time_evolved_probability[:,:,i]
+        plt.imshow(grid, interpolation='none')
+        plt.show()
