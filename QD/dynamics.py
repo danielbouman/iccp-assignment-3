@@ -15,18 +15,17 @@ class CrankNicolson:
   def __init__(self,a,L,sigma_x,sigma_y,k_x,k_y,mu_x,mu_y):
     self.gridLength = int(L/a) # box length
     self.a = a # spatial resolution
-    self.xAxis = np.linspace(0,L,self.gridLength)
-    self.yAxis = np.linspace(0,L,self.gridLength)
+    self.grid1D = np.linspace(0,L,self.gridLength)
     
     # Define the momentum part of the Hamiltonian matrices
     c = 1/(a**2)
-    xNeighbors = sp.diags([c,-2*c,c],[-1,0,1],shape=(self.gridLength,self.gridLength))
+    xNeighbors = sp.diags([c,-4*c,c],[-1,0,1],shape=(self.gridLength,self.gridLength))
     self.H = sp.kron(sp.eye(self.gridLength),xNeighbors) + sp.diags([1,1],[-self.gridLength,self.gridLength],shape=(self.gridLength**2,self.gridLength**2))
     
     # Wave function
-    psi_x = np.multiply(np.exp((-1/sigma_x)*np.power(self.xAxis-mu_x,2)),np.exp(-1j*k_x*self.xAxis))
-    psi_y = np.multiply(np.exp((-1/sigma_y)*np.power(self.yAxis-mu_y,2)),np.exp(-1j*k_y*self.yAxis))
-    self.psi = np.outer(psi_x,psi_y).flatten()
+    psi_x = np.multiply(np.exp((-1/sigma_x)*np.power(self.grid1D-mu_x,2)),np.exp(-1j*k_x*self.grid1D))
+    psi_y = np.multiply(np.exp((-1/sigma_y)*np.power(self.grid1D-mu_y,2)),np.exp(-1j*k_y*self.grid1D))
+    self.psi = np.outer(psi_y,psi_x).flatten()
     
   def potential(self,function):
     if function == "wall":
@@ -53,13 +52,13 @@ class CrankNicolson:
 
     # Start time evolution of particle
     for i in range(0,duration):
-      print(i)
+      # print(i)
       # Solve linear equation A*psi(t + tau) = B*psi(t)
       self.time_evolved_psi[:,i],_ = linalg.bicgstab(A,B.dot(self.psi).transpose())
       self.psi = self.time_evolved_psi[:,i]
 
   def plot2D(self):
-    self.time_evolved_probability = np.real(np.multiply(self.time_evolved_psi,np.conj(self.time_evolved_psi))).reshape(self.gridLength,self.gridLength,self.duration)
+    time_evolved_probability = np.real(np.multiply(self.time_evolved_psi,np.conj(self.time_evolved_psi))).reshape(self.gridLength,self.gridLength,self.duration)
     # time_evolved_probability_y = np.real(np.multiply(self.time_evolved_psi_y,np.conj(self.time_evolved_psi_y)))
     # time_evolved_probabilit y= np.zeros((self.sizeX,self.sizeY,self.duration),dtype=float)
 
@@ -71,7 +70,7 @@ class CrankNicolson:
     # animate_wavefunction(time_evolved_probability,self.L,self.a,self.duration)
     # plt.plot(self.xAxis,sel)
 
-    x_mesh,y_mesh = np.meshgrid(self.xAxis,self.yAxis)
+    x_mesh,y_mesh = np.meshgrid(self.grid1D,self.grid1D)
     
     # fig = plt.figure()
     # ax = plt.axes(xlim=(0, self.L_x), ylim=(0, self.L_y))
@@ -80,7 +79,7 @@ class CrankNicolson:
 
     # anim = animation.FuncAnimation(fig, animate, frames=Nt)
 
-    for i in range(0,self.duration):
-        grid = time_evolved_probability[:,:,i]
-        plt.imshow(grid, interpolation='none')
-        plt.show()
+    # for i in range(0,self.duration):
+    grid = time_evolved_probability[:,:,50]
+    plt.imshow(grid, interpolation='none')
+    plt.show()

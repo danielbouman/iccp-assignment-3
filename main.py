@@ -2,12 +2,12 @@
 from QD.dynamics import CrankNicolson
 
 # Parameters
-a = 0.5        # Spatial resolution
-L = 40        # Square box size
+a = 1        # Spatial resolution
+L = 80        # Square box size
 sigma_x = 2.5   # Wavefunction shape x-direction
 sigma_y = 2.5   # Wavefunction shape y-direction
-mu_x = 20        # Wavefunction position x-direction
-mu_y = 20       # Wavefunction position y-direction
+mu_x = 40        # Wavefunction position x-direction
+mu_y = 40       # Wavefunction position y-direction
 k_x = 0     # Wave vector x-direction
 k_y = 0     # Wave vector y-direction
 # Potential
