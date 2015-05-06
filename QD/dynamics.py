@@ -20,7 +20,7 @@ class CrankNicolson:
     # Define the momentum part of the Hamiltonian matrices
     c = 1/(a**2)
     xNeighbors = sp.diags([c,-4*c,c],[-1,0,1],shape=(self.gridLength,self.gridLength))
-    self.H = sp.kron(sp.eye(self.gridLength),xNeighbors) + sp.diags([1,1],[-self.gridLength,self.gridLength],shape=(self.gridLength**2,self.gridLength**2))
+    self.H = sp.kron(sp.eye(self.gridLength),xNeighbors) + sp.diags([c,c],[-self.gridLength,self.gridLength],shape=(self.gridLength**2,self.gridLength**2))
     
     # Wave function
     psi_x = np.multiply(np.exp((-1/sigma_x)*np.power(self.grid1D-mu_x,2)),np.exp(-1j*k_x*self.grid1D))
