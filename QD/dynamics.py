@@ -3,9 +3,9 @@ from numpy import linalg as LA
 import scipy.sparse as sp
 import scipy.sparse.linalg as linalg
 import matplotlib.pyplot as plt
-# import matplotlib.animation as animation
+import matplotlib.animation as animation
 # import sys
-# from anim2D import animate_wavefunction
+from anim2D import animate_wavefunction
 # import time
 # import pylab
 # from mpl_toolkits.mplot3d import Axes3D
@@ -16,7 +16,8 @@ class CrankNicolson:
     self.gridLength = int(L/a) # box length
     self.a = a # spatial resolution
     self.grid1D = np.linspace(0,L,self.gridLength)
-    
+    self.L = L
+
     # Define the momentum part of the Hamiltonian matrices
     c = 1/(a**2)
     xNeighbors = sp.diags([c,-4*c,c],[-1,0,1],shape=(self.gridLength,self.gridLength))
@@ -32,6 +33,33 @@ class CrankNicolson:
       V = sp.lil_matrix((self.gridLength,self.gridLength))
       V[args[0]/self.a,:] = args[1]
       self.H = self.H + sp.diags(V.reshape((1,self.gridLength**2)).toarray(),[0])
+    elif function == "double slit":
+        V = sp.lil_matrix((self.gridLength,self.gridLength))
+        V[args[0]/self.a,:] = args[1]
+        V[args[0]/self.a,40] = args[1]/2
+        V[args[0]/self.a,41] = 0
+        V[args[0]/self.a,42] = 0
+        V[args[0]/self.a,43] = 0
+        V[args[0]/self.a,44] = 0
+        V[args[0]/self.a,45] = 0
+        V[args[0]/self.a,46] = 0
+        V[args[0]/self.a,47] = 0
+        V[args[0]/self.a,48] = 0
+        V[args[0]/self.a,49] = args[1]/2
+
+        V[args[0]/self.a,51] = args[1]/2
+        V[args[0]/self.a,52] = 0
+        V[args[0]/self.a,53] = 0
+        V[args[0]/self.a,54] = 0
+        V[args[0]/self.a,55] = 0
+        V[args[0]/self.a,56] = 0
+        V[args[0]/self.a,57] = 0
+        V[args[0]/self.a,58] = 0
+        V[args[0]/self.a,59] = 0
+        V[args[0]/self.a,60] = args[1]/2
+
+        self.H = self.H + sp.diags(V.reshape((1,self.gridLength**2)).toarray(),[0])
+
 
   def normalize_wavefunction(self):
     self.psi = (1/np.linalg.norm(self.psi))*self.psi
@@ -51,29 +79,26 @@ class CrankNicolson:
       self.time_evolved_psi[:,i],_ = linalg.bicgstab(A,B.dot(self.psi).transpose())
       self.psi = self.time_evolved_psi[:,i]
 
-  def plot2D(self):
+  def plot2D(self,plotStyle):
     time_evolved_probability = np.real(np.multiply(self.time_evolved_psi,np.conj(self.time_evolved_psi))).reshape(self.gridLength,self.gridLength,self.duration)
-    # time_evolved_probability_y = np.real(np.multiply(self.time_evolved_psi_y,np.conj(self.time_evolved_psi_y)))
-    # time_evolved_probabilit y= np.zeros((self.sizeX,self.sizeY,self.duration),dtype=float)
+    x,y = np.meshgrid(self.grid1D,self.grid1D)
 
-    # for i in range(0,self.duration):
-        # time_evolved_probability[:,:,i] = np.outer(time_evolved_probability_x[:,i],time_evolved_probability_y[:,i])
+    if plotStyle == "plot":
+        for i in range(0,self.duration):
+          grid = time_evolved_probability[:,:,5*i]
+          plt.imshow(grid, interpolation='none')
+          plt.show()
+    else:
+        fig = plt.figure()
+        ax = plt.axes(xlim=(0, self.L), ylim=(0, self.L))  
 
-    # print(time_evolved_probability[:,:,0])
+        # animation function
+        def animate(i): 
+            z = time_evolved_probability[:,:,i]
+            cont = plt.contourf(x, y, z,9)
+            return cont  
 
-    # animate_wavefunction(time_evolved_probability,self.L,self.a,self.duration)
-    # plt.plot(self.xAxis,sel)
+        anim = animation.FuncAnimation(fig, animate, interval= 200,  repeat_delay=1000, frames=self.duration)
+        plt.show()
 
-    x_mesh,y_mesh = np.meshgrid(self.grid1D,self.grid1D)
-    
-    # fig = plt.figure()
-    # ax = plt.axes(xlim=(0, self.L_x), ylim=(0, self.L_y))
-    # plt.xlabel(r'x')
-    # plt.ylabel(r'y')
 
-    # anim = animation.FuncAnimation(fig, animate, frames=Nt)
-
-    for i in range(0,self.duration):
-      grid = time_evolved_probability[:,:,i]
-      plt.imshow(grid, interpolation='none')
-      plt.show()
