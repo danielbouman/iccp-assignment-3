@@ -12,12 +12,12 @@ k_x = 0     # Wave vector x-direction
 k_y = 500     # Wave vector y-direction
 
 # Time evolution
-tau = 0.1
+tau = 1
 duration = 100
 
 particle = CrankNicolson(a,L,sigma_x,sigma_y,k_x,k_y,mu_x,mu_y)     # Initialize particle
 particle.normalize_wavefunction()      # normalize wavefunction so that probability sums up to unity
 particle.potential("double slit",25,100,1,5)          # Initialize potential
 particle.timeEvolution(tau,duration)             # Start time evolution of particle
-particle.plot2D()
+particle.plot2D("animate",saveAnimation=True)
 # particle1.plot()
