@@ -19,12 +19,15 @@ class CrankNicolson:
     xNeighbors = sp.diags([c,-4*c,c],[-1,0,1],shape=(self.gridLength,self.gridLength))
     self.H = sp.kron(sp.eye(self.gridLength),xNeighbors) + sp.diags([c,c],[-self.gridLength,self.gridLength],shape=(self.gridLength**2,self.gridLength**2))
     
-    # Wave function
+    # Create wave function
     psi_x = np.multiply(np.exp((-1/sigma_x)*np.power(self.grid1D-mu_x,2)),np.exp(-1j*k_x*self.grid1D))
     psi_y = np.multiply(np.exp((-1/sigma_y)*np.power(self.grid1D-mu_y,2)),np.exp(-1j*k_y*self.grid1D))
     self.psi = np.outer(psi_y,psi_x).flatten()
+    # Normalize wave function
+    self.psi = (1/np.linalg.norm(self.psi))*self.psi
     
   def potential(self,function,*args):
+    self.potentialName = function
     V = sp.lil_matrix((self.gridLength,self.gridLength))
     if str.lower(function) == "wall":
       """
@@ -49,10 +52,6 @@ class CrankNicolson:
       V[args[0]/self.a,startIndexSlitRight:int(startIndexSlitRight+args[3]/self.a)] = 0
     
     self.H = self.H + sp.diags(V.reshape((1,self.gridLength**2)).toarray(),[0])
-      
-
-  def normalize_wavefunction(self):
-    self.psi = (1/np.linalg.norm(self.psi))*self.psi
     
   def timeEvolution(self,tau,duration):
     self.duration = duration
@@ -61,12 +60,15 @@ class CrankNicolson:
     B = sp.identity(self.gridLength**2) + tau/(1j)*self.H
     
     self.time_evolved_psi = np.zeros((self.gridLength**2,duration),dtype=complex)
-
     # Start time evolution of particle
     # Solve linear equation A*psi(t + tau) = B*psi(t)
     for i in range(0,duration):
+      print(i)
       self.time_evolved_psi[:,i],_ = linalg.bicgstab(A,B.dot(self.psi).transpose())
       self.psi = self.time_evolved_psi[:,i]
+  
+  # def saveData(self):
+    
 
   def plot(self,plotStyle="",saveAnimation=False):
     time_evolved_probability = np.real(np.multiply(self.time_evolved_psi,np.conj(self.time_evolved_psi))).reshape(self.gridLength,self.gridLength,self.duration)
@@ -75,19 +77,18 @@ class CrankNicolson:
     if saveAnimation == True:
       # Set up formatting for the movie files
       Writer = animation.writers['ffmpeg']
-      writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
+      writer = Writer(fps=15, metadata=dict(artist='Bouman and Goodenough'), bitrate=1800)
     
-    if plotStyle == "animate":
+    if str.lower(plotStyle) == "animate":
       fig = plt.figure()
       ax = plt.axes(xlim=(0, self.L), ylim=(0, self.L))
-      # animation function
       def animate(i):
           z = time_evolved_probability[:,:,i]
           cont = plt.contourf(x, y, z,9)
           return cont
       anim = animation.FuncAnimation(fig, animate, interval= 200,  repeat_delay=1000, frames=self.duration)
       if saveAnimation == True:
-        anim.save('im.mp4', writer=writer)
+        anim.save(str(self.potentialName)+'.mp4', writer=writer)
       else:
         plt.show()
     else:

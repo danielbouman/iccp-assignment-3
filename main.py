@@ -13,10 +13,10 @@ k_y = 500       # Wave vector y-direction
 
 # Time evolution
 tau = 0.1
-duration = 100
+duration = 50
 
 particle = CrankNicolson(a,L,sigma_x,sigma_y,k_x,k_y,mu_x,mu_y) # Initialize particle and momentum operators
-particle.normalize_wavefunction()                               # Normalize the wavefunction
 particle.potential("double slit",25,100,1,5)                    # Initialize potential
 particle.timeEvolution(tau,duration)                            # Start time evolution of the particle
-particle.plot()                                                 # Plot the result
+# particle.saveData("")
+particle.plot("animate",saveAnimation=True)                     # Plot the result
