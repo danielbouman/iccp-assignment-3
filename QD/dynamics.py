@@ -4,12 +4,12 @@ import scipy.sparse as sp
 import scipy.sparse.linalg as linalg
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-# from anim2D import animate_wavefunction
-
+import time
+  
 class CrankNicolson:
   
   def __init__(self,a,L,sigma_x,sigma_y,k_x,k_y,mu_x,mu_y):
-    self.gridLength = int(L/a) # box length
+    self.gridLength = int(L/a + 1) # box length
     self.a = a # spatial resolution
     self.grid1D = np.linspace(0,L,self.gridLength)
     self.L = L
@@ -26,7 +26,7 @@ class CrankNicolson:
     # Normalize wave function
     self.psi = (1/np.linalg.norm(self.psi))*self.psi
     
-  def potential(self,function,*args):
+  def potential(self,function="infinite square well",*args):
     self.potentialName = function
     V = sp.lil_matrix((self.gridLength,self.gridLength))
     if str.lower(function) == "wall":
@@ -36,6 +36,7 @@ class CrankNicolson:
       arg 1 : height of wall
       """
       V[args[0]/self.a,:] = args[1]
+      self.H = self.H + sp.diags(V.reshape((1,self.gridLength**2)).toarray(),[0])
 
     if str.lower(function) == "double slit":
       """
@@ -45,13 +46,29 @@ class CrankNicolson:
       arg 2 : slit distances from the center
       arg 3 : width of slits
       """
+      # Create hard wall potential
       V[args[0]/self.a,:] = args[1]
       endIndexSlitLeft = int(self.gridLength/2 - args[2]/self.a)
       startIndexSlitRight = int(self.gridLength/2 + args[2]/self.a)
+      # Make slits in the wall
       V[args[0]/self.a,int(endIndexSlitLeft-args[3]/self.a):endIndexSlitLeft] = 0
       V[args[0]/self.a,startIndexSlitRight:int(startIndexSlitRight+args[3]/self.a)] = 0
-    
-    self.H = self.H + sp.diags(V.reshape((1,self.gridLength**2)).toarray(),[0])
+      # Reshape potential grid and add to Hamiltonian operator
+      self.H = self.H + sp.diags(V.reshape((1,self.gridLength**2)).toarray(),[0])
+      
+    if str.lower(function) == "harmonic trap":
+      """
+      Harmonic potential
+      arg 0 : omega
+      """
+      # Define x and y coordinates
+      gridX = np.outer(np.ones((self.gridLength)),self.grid1D)
+      gridY = np.outer(self.grid1D,np.ones((self.gridLength)))
+      V = 0.5*(args[0]**2)*((gridX-gridX[(self.gridLength-1)/2,(self.gridLength-1)/2])**2+(gridY-gridY[(self.gridLength-1)/2,(self.gridLength-1)/2])**2)
+      # Reshape potential grid and add to Hamiltonian operator
+      self.H = self.H - sp.diags([V.flatten()],[0])
+      self.potential = V
+      self.potentialFlat = sp.diags([V.flatten()],[0])
     
   def timeEvolution(self,tau,duration):
     self.duration = duration
@@ -63,34 +80,47 @@ class CrankNicolson:
     # Start time evolution of particle
     # Solve linear equation A*psi(t + tau) = B*psi(t)
     for i in range(0,duration):
-      print(i)
+      # print(i)
       self.time_evolved_psi[:,i],_ = linalg.bicgstab(A,B.dot(self.psi).transpose())
       self.psi = self.time_evolved_psi[:,i]
   
   # def saveData(self):
     
 
-  def plot(self,plotStyle="",saveAnimation=False):
+  def plot(self,plotStyle="",saveAnimation=False,fixColormap=False):
     time_evolved_probability = np.real(np.multiply(self.time_evolved_psi,np.conj(self.time_evolved_psi))).reshape(self.gridLength,self.gridLength,self.duration)
     x,y = np.meshgrid(self.grid1D,self.grid1D)
 
     if saveAnimation == True:
       # Set up formatting for the movie files
       Writer = animation.writers['ffmpeg']
-      writer = Writer(fps=15, metadata=dict(artist='Bouman and Goodenough'), bitrate=1800)
+      writer = Writer(fps=15, metadata=dict(artist='Bouman and Goodenough'))
     
     if str.lower(plotStyle) == "animate":
+      print("Creating animation...")
       fig = plt.figure()
       ax = plt.axes(xlim=(0, self.L), ylim=(0, self.L))
+      if fixColormap == True:
+        maxProb = np.max(time_evolved_probability)
+      else:
+        maxProb = None
+        
       def animate(i):
-          z = time_evolved_probability[:,:,i]
-          cont = plt.contourf(x, y, z,9)
+          cont = plt.contourf(x, y, time_evolved_probability[:,:,i],20,vmin=0,vmax=maxProb)
           return cont
+          
       anim = animation.FuncAnimation(fig, animate, interval= 200,  repeat_delay=1000, frames=self.duration)
+      
       if saveAnimation == True:
-        anim.save(str(self.potentialName)+'.mp4', writer=writer)
+        print("Saving animation...")
+        start = time.time()
+        anim.save(self.potentialName+'.mp4', writer=writer)
+        end = time.time()
+        print(end - start)
+        print("Done. Animation saved as "+self.potentialName+".mp4")
       else:
         plt.show()
+        
     else:
       for i in range(0,self.duration):
         grid = time_evolved_probability[:,:,i]
