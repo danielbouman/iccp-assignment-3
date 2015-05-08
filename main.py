@@ -1,24 +1,31 @@
 # ICCP assignment 3
-from QD.dynamics import Particle
+import numpy as np
+from QD.dynamics import CrankNicolson
 
 # Parameters
-a = 0.5       # Spatial resolution
-L = 100       # Domain size
-sigma = 9.5     # Wavefunction shape
-k = 1         # Wave vector
-mu = 10
-hbar = 1      # Reduced Planck constant
-# Potential
-pos = 50      # Potential position
-amp = 100      # Potential height
+a = 0.5                 # Spatial resolution
+L = 100                 # Domain size
+sigma = 9.5            # Wave function shape
+k = 0.8*(2*np.pi)/a     # Wave vector
+mu = 15                 # Wave function position
 
 # Time evolution
 tau = 0.1
-duration = 500
+duration = 140
 
-particle1 = Particle(a,L,sigma,k,mu)     # Initialize particle
-particle1.normalize_wavefunction()      # normalize wavefunction so that probability sums up to unity
-particle1.potential(pos,amp)          # Initialize potential
-particle1.timeEvolution(tau,hbar,duration)             # Start time evolution of particle
-particle1.animate()
-# particle1.plot()
+pots = np.logspace(-2, 1, 100)
+trans = np.zeros(len(pots))
+i = 0
+
+# particle = CrankNicolson(a,L,sigma,k,mu)     # Initialize particle
+# particle.potential("rectangular barrier",40,50,2)          # Initialize potential
+# _ = particle.timeEvolution(tau,duration)             # Start time evolution of particle
+# particle.animate(saveAnimation=True)
+for iii in pots:
+  # print(iii)
+  particle = CrankNicolson(a,L,sigma,k,mu)     # Initialize particle
+  particle.potential("rectangular barrier",40,iii,2.6)          # Initialize potential
+  trans[i] = particle.timeEvolution(tau,duration)             # Start time evolution of particle
+  # print(iii)
+  i = i + 1
+print('Done.')

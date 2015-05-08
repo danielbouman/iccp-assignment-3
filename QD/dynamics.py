@@ -7,65 +7,85 @@ import time
 from anim import animate_wavefunction
 
 
-class Particle:
+class CrankNicolson:
   
-  def __init__(self,a,L,sigma,k,mu):
-    self.L = L # box length
+  def __init__(self,a,L,sigma,k,mu,waveform="gaussian"):
+    self.gridLength = int(L/a +1)
     self.a = a # spatial resolution
-    self.xAxis = np.linspace(0,L,L/a)
+    self.grid = np.linspace(0,L,self.gridLength)
     
     # Define the momentum operator matrix
-    self.H = np.multiply(sp.eye(L/a,k=0),-2)
-    self.H = self.H + sp.eye(L/a,k=-1)
-    self.H = self.H + sp.eye(L/a,k=1)
-    self.H = np.divide(self.H,-a**2).todense()
+    c = -1/(a**2)
+    self.H = sp.diags([c,-2*c,c],[-1,0,1],shape=(self.gridLength,self.gridLength))
     
     # Wave function
-    self.psi = np.multiply(np.exp((-1/sigma)*np.power(self.xAxis-mu,2)),np.exp(-1j*k*self.xAxis))
+    if waveform == "gaussian":
+      self.psi = np.multiply(np.exp((-1/sigma**2)*np.power(self.grid-mu,2)),np.exp(-1j*k*self.grid))
+    # Normalize wave function
+    self.psi = np.multiply((1/(np.linalg.norm(self.psi))),self.psi)
 
     
-  def potential(self,pos,amp):
-    # Add potential to hamiltonian matrix
-    H_index = pos/self.a
-    self.H[H_index,H_index] = self.H[H_index,H_index] + amp
-
-  def normalize_wavefunction(self):
-    inner_product = self.a*sum(np.multiply(self.psi,np.conj(self.psi)))
-    self.psi = (1/np.sqrt(np.abs(inner_product)))*self.psi
+  def potential(self,function,*args):
+    self.potentialName = function
+    # Initialize potential array
+    self.V = np.zeros(self.gridLength)
+    if str.lower(function) == "rectangular barrier":
+      """
+      Rectangular barrier
+      arg 0 : position of barrier
+      arg 1 : height of barrier
+      arg 2 : width of barrier
+      """
+      self.barrierStart = args[0]/self.a
+      self.barrierEnd = args[0]/self.a+args[2]/self.a
+      # Add barrier to potential array
+      self.V[self.barrierStart:self.barrierEnd] = args[1]
+      # Add potential to Hamiltonian operator
+      self.H = self.H + sp.diags([self.V],[0])
     
-  def timeEvolution(self,tau,hbar,duration):
+  def timeEvolution(self,tau,duration):
     self.duration = duration
     # Define A and B matrices
-    A = sp.identity(self.L/self.a) - tau/(1j*hbar)*self.H
-    B = sp.identity(self.L/self.a) + tau/(1j*hbar)*self.H
-    self.time_evolved_psi = np.zeros((self.L/self.a,duration),dtype=complex)
-    # Time is run here
+    A = sp.identity(self.gridLength) - tau/(2j)*self.H
+    B = sp.identity(self.gridLength) + tau/(2j)*self.H
+    self.time_evolved_psi = np.zeros((self.gridLength,duration),dtype=complex)
+    # Start time evolution
     for i in range(0,duration):
-        self.time_evolved_psi[:,i],_ = linalg.bicgstab(A,B.dot(self.psi).transpose())
-        self.psi = self.time_evolved_psi[:,i]
+      self.time_evolved_psi[:,i],_ = linalg.bicgstab(A,B.dot(self.psi).transpose(),tol=1e-10)
+      self.psi = self.time_evolved_psi[:,i]
+    # print(np.trapz(np.abs(self.psi[self.barrierEnd:])**2))
+    return np.trapz(np.abs(self.psi[self.barrierEnd:])**2)
     
-  def animate(self,interval=35):
-    
+  def animate(self,saveAnimation=False):
     time_evolved_probability = np.real(np.multiply(self.time_evolved_psi,np.conj(self.time_evolved_psi)))
     fig, ax = plt.subplots()
+    if saveAnimation == True:
+      # Set up formatting for the movie files
+      Writer = animation.writers['ffmpeg']
+      writer = Writer(fps=15, metadata=dict(artist='Bouman and Goodenough'))
 
-    x = np.arange(0, self.L, self.a)        # x-array
-    line, = ax.plot(x, np.sin(x))
+    line, = ax.plot(self.grid, np.sin(self.grid))
 
     def animate(i):
-        line.set_ydata(probability[:,i])  # update the data
+        line.set_ydata(time_evolved_probability[:,i])  # update the data
         return line,
 
     #Init only required for blitting to give a clean slate.
     def init():
-        line.set_ydata(np.ma.array(x, mask=True))
+        line.set_ydata(np.ma.array(self.grid, mask=True))
         return line,
 
     ani = animation.FuncAnimation(fig, animate, np.arange(1, self.duration), init_func=init,
-        interval=interval, blit=True,repeat=False)
-    plt.axis([0,self.L,-0.05,0.5])
-    # potential = np.zeros((self.L/self.a,1),dtype=float)
-    # potential[100] = 0.3
-    # plt.plot(x,potential)
-    plt.show()
+        interval=35, blit=True,repeat=False)
+    plt.axis([0,self.gridLength*self.a,0,0.15])
+    plt.plot(self.grid,self.V*0.01)
+    if saveAnimation == True:
+      print("Saving animation...")
+      start = time.time()
+      ani.save(self.potentialName+'.mp4', writer=writer)
+      end = time.time()
+      print(end - start)
+      print("Done. Animation saved as "+self.potentialName+".mp4")
+    else:
+      plt.show()
     return
