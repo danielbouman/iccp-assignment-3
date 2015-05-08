@@ -18,14 +18,17 @@ class CrankNicolson:
     c = -1/(a**2)
     xNeighbors = sp.diags([c,-4*c,c],[-1,0,1],shape=(self.gridLength,self.gridLength))
     self.H = sp.kron(sp.eye(self.gridLength),xNeighbors) + sp.diags([c,c],[-self.gridLength,self.gridLength],shape=(self.gridLength**2,self.gridLength**2))
-    
     # Create wave function
-    psi_x = np.multiply(np.exp((-1/sigma_x**2)*np.power(self.grid1D-mu_x,2)),np.exp(-1j*k_x*self.grid1D))
-    psi_y = np.multiply(np.exp((-1/sigma_y**2)*np.power(self.grid1D-mu_y,2)),np.exp(-1j*k_y*self.grid1D))
+    # psi_x = np.multiply(np.exp((-1/sigma_x**2)*np.power(self.grid1D-mu_x,2)),np.exp(-1j*k_x*self.grid1D))
+    # psi_y = np.multiply(np.exp((-1/sigma_y**2)*np.power(self.grid1D-mu_y,2)),np.exp(-1j*k_y*self.grid1D))
+    psi_x = np.sin(1*np.pi*self.grid1D/self.L)
+    psi_y = np.sin(1*np.pi*self.grid1D/self.L)
+
     self.psi = np.outer(psi_y,psi_x).flatten()
     # Normalize wave function
     self.psi = (1/np.linalg.norm(self.psi))*self.psi
     
+
   def potential(self,function="infinite square well",*args):
     self.potentialName = function
     V = sp.lil_matrix((self.gridLength,self.gridLength))
@@ -48,11 +51,11 @@ class CrankNicolson:
       """
       # Create hard wall potential
       V[args[0]/self.a,:] = args[1]
-      endIndexSlitLeft = int(self.gridLength/2 - args[2]/self.a)
-      startIndexSlitRight = int(self.gridLength/2 + args[2]/self.a)
+      endIndexSlitLeft = int(self.gridLength/2) - int(args[2]/self.a)
+      startIndexSlitRight = int(self.gridLength/2) + int(args[2]/self.a)
       # Make slits in the wall
-      V[args[0]/self.a,int(endIndexSlitLeft-args[3]/self.a):endIndexSlitLeft] = 0
-      V[args[0]/self.a,startIndexSlitRight:int(startIndexSlitRight+args[3]/self.a)] = 0
+      V[args[0]/self.a,endIndexSlitLeft-int(args[3]/self.a):endIndexSlitLeft] = 0
+      V[args[0]/self.a,startIndexSlitRight:startIndexSlitRight+int(args[3]/self.a)] = 0
       # Reshape potential grid and add to Hamiltonian operator
       self.H = self.H + sp.diags(V.reshape((1,self.gridLength**2)).toarray(),[0])
       
@@ -86,6 +89,21 @@ class CrankNicolson:
   
   # def saveData(self):
     
+  def wavefunctionComparison(self):
+    time_evolved_probability = np.real(np.multiply(self.time_evolved_psi,np.conj(self.time_evolved_psi)))
+    difference = self.time_evolved_psi
+    distance = np.zeros(self.duration+1)
+
+    for i in range(self.duration):
+        difference[:,i] = np.subtract(time_evolved_probability[:,i],time_evolved_probability[:,0])
+        distance[i] = self.a*np.sum(np.real(np.multiply(difference[:,i],np.conj(difference[:,i]))))
+        # norm = np.real(np.sum(np.sum(np.multiply(self.time_evolved_psi,np.conj(self.time_evolved_psi))).reshape(self.gridLength,self.gridLength,self.duration)))
+
+    x = np.linspace(0,1,self.duration+1)
+    # print(len(distance))
+    plt.plot(x,distance)
+    # plt.plot(x,norm)
+    plt.show()
 
   def plot(self,plotStyle="",saveAnimation=False,fixColormap=False):
     time_evolved_probability = np.real(np.multiply(self.time_evolved_psi,np.conj(self.time_evolved_psi))).reshape(self.gridLength,self.gridLength,self.duration)
