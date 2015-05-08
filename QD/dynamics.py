@@ -8,20 +8,20 @@ import time
   
 class CrankNicolson:
   
-  def __init__(self,a,L,sigma_x,sigma_y,k_x,k_y,mu_x,mu_y):
+  def __init__(self,a,L,tau,sigma_x,sigma_y,k_x,k_y,mu_x,mu_y):
     self.gridLength = int(L/a + 1) # box length
     self.a = a # spatial resolution
     self.grid1D = np.linspace(0,L,self.gridLength)
     self.L = L
 
     # Define the momentum part of the Hamiltonian matrices
-    c = 1/(a**2)
+    c = -1/(a**2)
     xNeighbors = sp.diags([c,-4*c,c],[-1,0,1],shape=(self.gridLength,self.gridLength))
     self.H = sp.kron(sp.eye(self.gridLength),xNeighbors) + sp.diags([c,c],[-self.gridLength,self.gridLength],shape=(self.gridLength**2,self.gridLength**2))
     
     # Create wave function
-    psi_x = np.multiply(np.exp((-1/sigma_x)*np.power(self.grid1D-mu_x,2)),np.exp(-1j*k_x*self.grid1D))
-    psi_y = np.multiply(np.exp((-1/sigma_y)*np.power(self.grid1D-mu_y,2)),np.exp(-1j*k_y*self.grid1D))
+    psi_x = np.multiply(np.exp((-1/sigma_x**2)*np.power(self.grid1D-mu_x,2)),np.exp(-1j*k_x*self.grid1D))
+    psi_y = np.multiply(np.exp((-1/sigma_y**2)*np.power(self.grid1D-mu_y,2)),np.exp(-1j*k_y*self.grid1D))
     self.psi = np.outer(psi_y,psi_x).flatten()
     # Normalize wave function
     self.psi = (1/np.linalg.norm(self.psi))*self.psi
@@ -66,15 +66,15 @@ class CrankNicolson:
       gridY = np.outer(self.grid1D,np.ones((self.gridLength)))
       V = 0.5*(args[0]**2)*((gridX-gridX[(self.gridLength-1)/2,(self.gridLength-1)/2])**2+(gridY-gridY[(self.gridLength-1)/2,(self.gridLength-1)/2])**2)
       # Reshape potential grid and add to Hamiltonian operator
-      self.H = self.H - sp.diags([V.flatten()],[0])
+      self.H = self.H + sp.diags([V.flatten()],[0])
       self.potential = V
       self.potentialFlat = sp.diags([V.flatten()],[0])
     
   def timeEvolution(self,tau,duration):
     self.duration = duration
     # Define A and B matrices
-    A = sp.identity(self.gridLength**2) - tau/(1j)*self.H
-    B = sp.identity(self.gridLength**2) + tau/(1j)*self.H
+    A = sp.identity(self.gridLength**2) - tau/(2j)*self.H
+    B = sp.identity(self.gridLength**2) + tau/(2j)*self.H
     
     self.time_evolved_psi = np.zeros((self.gridLength**2,duration),dtype=complex)
     # Start time evolution of particle
@@ -106,7 +106,7 @@ class CrankNicolson:
         maxProb = None
         
       def animate(i):
-          cont = plt.contourf(x, y, time_evolved_probability[:,:,i],20,vmin=0,vmax=maxProb)
+          cont = plt.contourf(x, y, time_evolved_probability[:,:,i],50,vmin=0,vmax=maxProb)
           return cont
           
       anim = animation.FuncAnimation(fig, animate, interval= 200,  repeat_delay=1000, frames=self.duration)
