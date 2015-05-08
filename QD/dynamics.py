@@ -79,10 +79,14 @@ class CrankNicolson:
     self.time_evolved_psi = np.zeros((self.gridLength**2,duration),dtype=complex)
     # Start time evolution of particle
     # Solve linear equation A*psi(t + tau) = B*psi(t)
+    start = time.time()
     for i in range(0,duration):
       # print(i)
-      self.time_evolved_psi[:,i],_ = linalg.bicgstab(A,B.dot(self.psi).transpose())
+      self.time_evolved_psi[:,i],_ = linalg.bicgstab(A,B.dot(self.psi).transpose(),tol=1e-10)
       self.psi = self.time_evolved_psi[:,i]
+      
+    end = time.time()
+    print(end - start)
   
   # def saveData(self):
     
@@ -94,7 +98,7 @@ class CrankNicolson:
     if saveAnimation == True:
       # Set up formatting for the movie files
       Writer = animation.writers['ffmpeg']
-      writer = Writer(fps=15, metadata=dict(artist='Bouman and Goodenough'))
+      writer = Writer(fps=15, codec='libx264', metadata=dict(artist='Bouman and Goodenough'))
     
     if str.lower(plotStyle) == "animate":
       print("Creating animation...")
