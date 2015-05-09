@@ -4,6 +4,7 @@ import scipy.sparse as sp
 import scipy.sparse.linalg as linalg
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import save_data as save
 import time
   
 class CrankNicolson:
@@ -21,8 +22,8 @@ class CrankNicolson:
     # Create wave function
     # psi_x = np.multiply(np.exp((-1/sigma_x**2)*np.power(self.grid1D-mu_x,2)),np.exp(-1j*k_x*self.grid1D))
     # psi_y = np.multiply(np.exp((-1/sigma_y**2)*np.power(self.grid1D-mu_y,2)),np.exp(-1j*k_y*self.grid1D))
-    psi_x = np.sin(1*np.pi*self.grid1D/self.L)
-    psi_y = np.sin(1*np.pi*self.grid1D/self.L)
+    psi_x = np.sin(3*np.pi*self.grid1D/self.L)
+    psi_y = np.sin(2*np.pi*self.grid1D/self.L)
 
     self.psi = np.outer(psi_y,psi_x).flatten()
     # Normalize wave function
@@ -41,7 +42,7 @@ class CrankNicolson:
       V[args[0]/self.a,:] = args[1]
       self.H = self.H + sp.diags(V.reshape((1,self.gridLength**2)).toarray(),[0])
 
-    if str.lower(function) == "double slit":
+    if str.lower(function) == "double slit" or str.lower(function) == "slit":
       """
       Double slit wall
       arg 0 : y-position of wall
@@ -59,7 +60,7 @@ class CrankNicolson:
       # Reshape potential grid and add to Hamiltonian operator
       self.H = self.H + sp.diags(V.reshape((1,self.gridLength**2)).toarray(),[0])
       
-    if str.lower(function) == "harmonic trap":
+    if str.lower(function) == "harmonic trap" or str.lower(function) == "harmonic":
       """
       Harmonic potential
       arg 0 : omega
@@ -71,6 +72,7 @@ class CrankNicolson:
       # Reshape potential grid and add to Hamiltonian operator
       self.H = self.H + sp.diags([V.flatten()],[0])
       self.potential = V
+      print(self.potential)
       self.potentialFlat = sp.diags([V.flatten()],[0])
     
   def timeEvolution(self,tau,duration):
@@ -94,20 +96,28 @@ class CrankNicolson:
   # def saveData(self):
     
   def wavefunctionComparison(self):
-    time_evolved_probability = np.real(np.multiply(self.time_evolved_psi,np.conj(self.time_evolved_psi)))
-    difference = self.time_evolved_psi
+    probabilities = np.real(np.multiply(self.time_evolved_psi,np.conj(self.time_evolved_psi)))
+    difference = np.zeros((self.gridLength**2,self.duration+1),dtype="complex")
     distance = np.zeros(self.duration+1)
+    norm = np.zeros((self.duration+1),dtype="float")
 
     for i in range(self.duration):
-        difference[:,i] = np.subtract(time_evolved_probability[:,i],time_evolved_probability[:,0])
-        distance[i] = self.a*np.sum(np.real(np.multiply(difference[:,i],np.conj(difference[:,i]))))
-        # norm = np.real(np.sum(np.sum(np.multiply(self.time_evolved_psi,np.conj(self.time_evolved_psi))).reshape(self.gridLength,self.gridLength,self.duration)))
+        difference[:,i] = np.subtract(probabilities[:,i],probabilities[:,0])
+        distance[i] = (self.a*2)*np.sum(np.real(np.multiply(difference[:,i],np.conj(difference[:,i]))))
+        norm[i] = np.sum(probabilities[:,i])
 
+    norm = np.subtract(norm,1)
+    norm = np.multiply(norm,np.power(10,12))
     x = np.linspace(0,1,self.duration+1)
-    # print(len(distance))
-    plt.plot(x,distance)
-    # plt.plot(x,norm)
+    plt.plot(x[0:-1],distance[0:-1])
     plt.show()
+    plt.plot(x[0:-1],norm[0:-1])
+    plt.show()
+
+    print(distance.shape)
+    np.savetxt('distance.dat', distance.flatten(), delimiter=',')
+    # save.save(norm.flatten(),"norm",header="",write_mode="w")
+
 
   def plot(self,plotStyle="",saveAnimation=False,fixColormap=False):
     time_evolved_probability = np.real(np.multiply(self.time_evolved_psi,np.conj(self.time_evolved_psi))).reshape(self.gridLength,self.gridLength,self.duration)
