@@ -13,12 +13,12 @@ k_x = 0         # Wave vector x-direction
 k_y = -1.1*(2*np.pi)/a       # Wave vector y-direction
 
 # Time evolution
-tau = 0.2
-duration = 200
+tau = 0.1
+duration = 50
 
 particle = CrankNicolson(a,L,tau,sigma_x,sigma_y,k_x,k_y,mu_x,mu_y) # Initialize particle and momentum operators
-# particle.potential("double slit",20,100,0.5,2)                    # Initialize potential
-# particle.potential("harmonic trap",0.2)                    # Initialize potential
+particle.potential("double slit",25,100,1,5)                    # Initialize potential
+# particle.potential("harmonic",0.2)                    # Initialize potential
 particle.timeEvolution(tau,duration)                            # Start time evolution of the particle
 particle.wavefunctionComparison()
 # particle.saveData("")
