@@ -9,7 +9,8 @@ from anim import animate_wavefunction
 
 class CrankNicolson:
   
-  def __init__(self,a,L,sigma,k,mu,waveform="gaussian"):
+  def __init__(self,a,L,waveform="gaussian",*args):
+    self.waveform = waveform
     self.gridLength = int(L/a +1)
     self.a = a # spatial resolution
     self.grid = np.linspace(0,L,self.gridLength)
@@ -20,12 +21,22 @@ class CrankNicolson:
     
     # Wave function
     if waveform == "gaussian":
-      self.psi = np.multiply(np.exp((-1/sigma**2)*np.power(self.grid-mu,2)),np.exp(-1j*k*self.grid))
+      """
+      arg 0 : sigma
+      arg 1 : k
+      arg 2 : mu
+      """
+      self.psi = np.multiply(np.exp((-1/args[0]**2)*np.power(self.grid-args[2],2)),np.exp(-1j*args[1]*self.grid))
+    if waveform == "eigenstate":
+      """
+      arg 0 : n
+      """
+      self.psi = np.sin(args[0]*np.pi/L*self.grid)
     # Normalize wave function
     self.psi = np.multiply((1/(np.linalg.norm(self.psi))),self.psi)
 
     
-  def potential(self,function,*args):
+  def potential(self,function="infinite square well",*args):
     self.potentialName = function
     # Initialize potential array
     self.V = np.zeros(self.gridLength)
@@ -53,11 +64,12 @@ class CrankNicolson:
     for i in range(0,duration):
       self.time_evolved_psi[:,i],_ = linalg.bicgstab(A,B.dot(self.psi).transpose(),tol=1e-10)
       self.psi = self.time_evolved_psi[:,i]
-    # print(np.trapz(np.abs(self.psi[self.barrierEnd:])**2))
-    return np.trapz(np.abs(self.psi[self.barrierEnd:])**2)
+    if str.lower(self.potentialName) == "rectangular barrier":
+      return np.trapz(np.abs(self.psi[self.barrierEnd:])**2)
     
   def animate(self,saveAnimation=False):
-    time_evolved_probability = np.real(np.multiply(self.time_evolved_psi,np.conj(self.time_evolved_psi)))
+    # Time evolved probability
+    plotProb = np.real(np.multiply(self.time_evolved_psi,np.conj(self.time_evolved_psi)))
     fig, ax = plt.subplots()
     if saveAnimation == True:
       # Set up formatting for the movie files
@@ -67,7 +79,7 @@ class CrankNicolson:
     line, = ax.plot(self.grid, np.sin(self.grid))
 
     def animate(i):
-        line.set_ydata(time_evolved_probability[:,i])  # update the data
+        line.set_ydata(plotProb[:,i])  # update the data
         return line,
 
     #Init only required for blitting to give a clean slate.
