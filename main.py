@@ -17,9 +17,6 @@ tau = 0.5         # time step
 duration = 150    # amount of time steps
 
 particle = CrankNicolson(a,L,"gaussian",sigma_x,sigma_y,k_x,k_y,mu_x,mu_y) # Initialize particle and momentum operators
-# particle.potential("double slit",20,100,1,3)                    # Initialize potential
-particle.potential("harmonic trap",0.2)                    # Initialize potential
+particle.potential("double slit",20,100,1,3)                    # Initialize potential
 particle.timeEvolution(tau,duration)                            # Start time evolution of the particle
-# particle.wavefunctionComparison()
-# particle.saveData("")
 particle.plot("animate",saveAnimation=True)                     # Plot the result

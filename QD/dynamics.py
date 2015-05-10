@@ -4,7 +4,6 @@ import scipy.sparse as sp
 import scipy.sparse.linalg as linalg
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-import save_data as save
 import time
   
 class CrankNicolson:
@@ -98,8 +97,6 @@ class CrankNicolson:
       # print(i)
       self.time_evolved_psi[:,i],_ = linalg.bicgstab(A,B.dot(self.psi).transpose(),tol=1e-10)
       self.psi = self.time_evolved_psi[:,i]
-  
-  # def saveData(self):
     
   def wavefunctionComparison(self):
     probabilities = np.real(np.multiply(self.time_evolved_psi,np.conj(self.time_evolved_psi)))
@@ -120,9 +117,8 @@ class CrankNicolson:
     plt.plot(x[0:-1],norm[0:-1])
     plt.show()
 
-    print(distance.shape)
+    # Save data
     np.savetxt('distance.dat', distance.flatten(), delimiter=',')
-    # save.save(norm.flatten(),"norm",header="",write_mode="w")
 
 
   def plot(self,plotStyle="",saveAnimation=False,fixColormap=False):
