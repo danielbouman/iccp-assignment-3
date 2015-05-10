@@ -9,22 +9,32 @@ import time
   
 class CrankNicolson:
   
-  def __init__(self,a,L,tau,sigma_x,sigma_y,k_x,k_y,mu_x,mu_y):
-    self.gridLength = int(L/a + 1) # box length
-    self.a = a # spatial resolution
+  def __init__(self,a,L,wavefunction="gaussian",*args):
+    self.gridLength = int(L/a + 1)
+    self.a = a                                      # spatial resolution
     self.grid1D = np.linspace(0,L,self.gridLength)
-    self.L = L
+    self.L = L                                      # Box length
 
     # Define the momentum part of the Hamiltonian matrices
     c = -1/(a**2)
     xNeighbors = sp.diags([c,-4*c,c],[-1,0,1],shape=(self.gridLength,self.gridLength))
     self.H = sp.kron(sp.eye(self.gridLength),xNeighbors) + sp.diags([c,c],[-self.gridLength,self.gridLength],shape=(self.gridLength**2,self.gridLength**2))
     # Create wave function
-    # psi_x = np.multiply(np.exp((-1/sigma_x**2)*np.power(self.grid1D-mu_x,2)),np.exp(-1j*k_x*self.grid1D))
-    # psi_y = np.multiply(np.exp((-1/sigma_y**2)*np.power(self.grid1D-mu_y,2)),np.exp(-1j*k_y*self.grid1D))
-    psi_x = np.sin(3*np.pi*self.grid1D/self.L)
-    psi_y = np.sin(2*np.pi*self.grid1D/self.L)
-
+    if wavefunction == "gaussian":
+      """
+      Gaussian waveform
+      args[0] : sigma_x
+      args[1] : sigma_y
+      args[2] : k_x
+      args[3] : k_y
+      args[4] : mu_x
+      args[5] : mu_y
+      """
+      psi_x = np.multiply(np.exp((-1/args[0]**2)*np.power(self.grid1D-args[4],2)),np.exp(-1j*args[2]*self.grid1D))
+      psi_y = np.multiply(np.exp((-1/args[1]**2)*np.power(self.grid1D-args[5],2)),np.exp(-1j*args[3]*self.grid1D))
+    if wavefunction == "eigenstate":
+      psi_x = np.sin(3*np.pi*self.grid1D/self.L)
+      psi_y = np.sin(2*np.pi*self.grid1D/self.L)
     self.psi = np.outer(psi_y,psi_x).flatten()
     # Normalize wave function
     self.psi = (1/np.linalg.norm(self.psi))*self.psi
@@ -55,14 +65,15 @@ class CrankNicolson:
       endIndexSlitLeft = int(self.gridLength/2) - int(args[2]/self.a)
       startIndexSlitRight = int(self.gridLength/2) + int(args[2]/self.a)
       # Make slits in the wall
-      V[args[0]/self.a,endIndexSlitLeft-int(args[3]/self.a):endIndexSlitLeft] = 0
+      V[args[0]/self.a,endIndexSlitLeft-int(args[3]/self.a)+1:endIndexSlitLeft+1] = 0
       V[args[0]/self.a,startIndexSlitRight:startIndexSlitRight+int(args[3]/self.a)] = 0
       # Reshape potential grid and add to Hamiltonian operator
+      self.V = V
       self.H = self.H + sp.diags(V.reshape((1,self.gridLength**2)).toarray(),[0])
       
     if str.lower(function) == "harmonic trap" or str.lower(function) == "harmonic":
       """
-      Harmonic potential
+      Harmonic trap potential
       arg 0 : omega
       """
       # Define x and y coordinates
@@ -84,14 +95,10 @@ class CrankNicolson:
     self.time_evolved_psi = np.zeros((self.gridLength**2,duration),dtype=complex)
     # Start time evolution of particle
     # Solve linear equation A*psi(t + tau) = B*psi(t)
-    start = time.time()
     for i in range(0,duration):
       # print(i)
       self.time_evolved_psi[:,i],_ = linalg.bicgstab(A,B.dot(self.psi).transpose(),tol=1e-10)
       self.psi = self.time_evolved_psi[:,i]
-      
-    end = time.time()
-    print(end - start)
   
   # def saveData(self):
     
@@ -126,7 +133,7 @@ class CrankNicolson:
     if saveAnimation == True:
       # Set up formatting for the movie files
       Writer = animation.writers['ffmpeg']
-      writer = Writer(fps=15, codec='libx264', metadata=dict(artist='Bouman and Goodenough'))
+      writer = Writer(fps=15, metadata=dict(artist='Bouman and Goodenough'))
     
     if str.lower(plotStyle) == "animate":
       print("Creating animation...")
