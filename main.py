@@ -19,15 +19,3 @@ particle = CrankNicolson(a,L,"gaussian",sigma,k,mu)       # Initialize particle
 particle.potential("rectangular barrier",40,50,2)         # Initialize potential
 particle.timeEvolution(tau,duration)                      # Start time evolution of particle
 particle.animate(saveAnimation=True)                      # Plot or save animation video
-
-# pots = np.logspace(-2, 1, 100)
-# trans = np.zeros(len(pots))
-# i = 0
-# for iii in pots:
-#   # print(iii)
-#   particle = CrankNicolson(a,L,sigma,k,mu)     # Initialize particle
-#   particle.potential("rectangular barrier",40,iii,2.6)          # Initialize potential
-#   trans[i] = particle.timeEvolution(tau,duration)             # Start time evolution of particle
-#   # print(iii)
-#   i = i + 1
-# print('Done.')
