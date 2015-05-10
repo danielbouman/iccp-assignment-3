@@ -1,0 +1,13 @@
+waveform  : gaussian
+mu_x      : 20
+mu_y      : 10
+sigma_x   : 4.5
+sigma_y   : 4.5
+k_x       : 0.8*(2*pi)/a
+k_y       : 0
+
+potential : harmonic trap
+omega     : 0.2
+
+tau       : 0.5
+duration  : 150

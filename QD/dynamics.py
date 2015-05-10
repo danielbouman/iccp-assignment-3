@@ -83,7 +83,6 @@ class CrankNicolson:
       # Reshape potential grid and add to Hamiltonian operator
       self.H = self.H + sp.diags([V.flatten()],[0])
       self.potential = V
-      print(self.potential)
       self.potentialFlat = sp.diags([V.flatten()],[0])
     
   def timeEvolution(self,tau,duration):
